@@ -142,12 +142,13 @@ namespace :django do
     if fetch(:create_s3_bucket)
       invoke 's3:create_bucket'
       on roles(:web) do
-        django("collectstatic", "--noinput --clear")
+        django("collectstatic", "-i *.coffee -i *.less -i node_modules/* -i bower_components/* --noinput --clear")
       end
     else
-      django("collectstatic", "--noinput --clear")
+      on roles(:migrator) do
+        django("collectstatic", "-i *.coffee -i *.less -i node_modules/* -i bower_components/* --noinput")
+      end
     end
-
   end
 
   desc "Symlink django settings to deployed.py"
@@ -169,10 +170,12 @@ namespace :django do
 
   desc "Run django migrations"
   task :migrate do
-    if fetch(:multidb)
-      django("sync_all", '--noinput', run_on=:web)
-    else
-      django("migrate", "--noinput", run_on=:web)
+    on roles(:migrator) do
+      if fetch(:multidb)
+        django('sync_all', '--noinput', run_on=:web)
+      else
+        django('migrate', '--noinput', run_on=:web)
+      end
     end
   end
 
@@ -284,7 +287,7 @@ end
 
 namespace :db do
   task :sync do
-    on roles(:migrator) do
+    on roles(:sync) do
       timestamp = Time.now.to_i
       database_url = File.read('envdir/uat/DATABASE_URL').strip
       uri = URI.parse(database_url)
@@ -308,7 +311,7 @@ namespace :db do
     end
   end
   task :sync_to_uat do
-    on roles(:migrator) do
+    on roles(:sync) do
       timestamp = Time.now.to_i
       database_url = File.read('envdir/prod/DATABASE_URL').strip
       uri = URI.parse(database_url)
@@ -335,7 +338,7 @@ end
 
 namespace :s3 do
   task :sync do
-    on roles(:migrator) do
+    on roles(:sync) do
       aws_access_key_id = File.read('envdir/prod/DJANGO_AWS_ACCESS_KEY_ID').strip
       aws_secret_access_key = File.read('envdir/prod/DJANGO_AWS_SECRET_ACCESS_KEY').strip
       uat_storage = File.read('envdir/uat/DJANGO_AWS_STORAGE_BUCKET_NAME').strip
@@ -361,7 +364,7 @@ namespace :s3 do
     end
   end
   task :sync_to_uat do
-    on roles(:migrator) do
+    on roles(:sync) do
       aws_access_key_id = File.read('envdir/prod/DJANGO_AWS_ACCESS_KEY_ID').strip
       aws_secret_access_key = File.read('envdir/prod/DJANGO_AWS_SECRET_ACCESS_KEY').strip
       uat_storage = File.read('envdir/uat/DJANGO_AWS_STORAGE_BUCKET_NAME').strip
