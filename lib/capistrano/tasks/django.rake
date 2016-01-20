@@ -180,7 +180,9 @@ namespace :django do
   end
 
   task :rebuild_index do
-    django("rebuild_index", "--noinput", run_on=:web)
+    on roles(:migrator) do
+      django("rebuild_index", "--noinput", run_on=:web)
+    end
   end
 end
 
