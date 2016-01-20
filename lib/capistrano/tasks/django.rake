@@ -185,13 +185,12 @@ namespace :django do
 end
 
 namespace :nodejs do
-
   desc 'Install node modules'
   task :npm_install do
     on roles(:web) do
       path = fetch(:npm_path) ? File.join(release_path, fetch(:npm_path)) : release_path
       within path do
-        execute 'npm', 'install'
+        execute 'npm', 'install', fetch(:npm_install_production, '--production')
       end
     end
   end
@@ -203,12 +202,11 @@ namespace :nodejs do
       path = fetch(:npm_path) ? File.join(release_path, fetch(:npm_path)) : release_path
       within path do
         fetch(:npm_tasks).each do |task, args|
-          execute "#{task}", args
+          execute "./node_modules/.bin/#{task}", args
         end
       end
     end
   end
-
 end
 
 
