@@ -101,6 +101,16 @@ namespace :django do
     execute 'sudo supervisorctl update'
   end
 
+  desc "Supervisor stop"
+  task :supervisor_stop do
+    execute :sudo, :supervisorctl, "stop #{fetch(:supervisor_process_name)}"
+  end
+
+  desc "Supervisor start"
+  task :supervisor_start do
+    execute :sudo, :supervisorctl, "start #{fetch(:supervisor_process_name)}"
+  end
+
   desc "Nginx reload"
   task :nginx_reload do
     execute 'sudo service nginx reload'
@@ -393,7 +403,9 @@ namespace :sync do
   desc 'Sync UAT to PROD'
   task :uat_to_prod do
     invoke 's3:sync'
+    invoke 'django:supervisor_stop'
     invoke 'db:sync'
+    invoke 'django:supervisor_start'
     invoke 'deploy'
   end
 
