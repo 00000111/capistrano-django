@@ -103,12 +103,16 @@ namespace :django do
 
   desc "Supervisor stop"
   task :supervisor_stop do
-    execute :sudo, :supervisorctl, "stop #{fetch(:supervisor_process_name)}"
+    on roles(:all) do
+      execute :sudo, :supervisorctl, "stop #{fetch(:supervisor_process_name)}"
+    end
   end
 
   desc "Supervisor start"
   task :supervisor_start do
-    execute :sudo, :supervisorctl, "start #{fetch(:supervisor_process_name)}"
+    on roles(:all) do
+      execute :sudo, :supervisorctl, "start #{fetch(:supervisor_process_name)}"
+    end
   end
 
   desc "Nginx reload"
