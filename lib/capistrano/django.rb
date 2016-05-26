@@ -157,7 +157,12 @@ namespace :django do
 
   desc "Symlink django settings to deployed.py"
   task :symlink_settings do
-    settings_path = File.join(release_path, fetch(:django_settings_dir))
+    if fetch(:shared_settings)
+      settings_path = File.join(shared_path, fetch(:django_settings_dir))
+    else
+      settings_path = File.join(release_path, fetch(:django_settings_dir))
+    end
+    # settings_path = File.join(release_path, fetch(:django_settings_dir))
     on roles(:all) do
       execute "ln -s #{settings_path}/#{fetch(:django_settings)}.py #{settings_path}/deployed.py"
     end
